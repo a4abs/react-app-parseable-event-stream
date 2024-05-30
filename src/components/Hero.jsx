@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 
 import { Container } from "../components/Container";
 import heroImg from "../images/hero.png";
-import { useErrorBoundary } from "react-error-boundary";
 import { fetchIpAddress } from "../service/ipService";
 import { parseableAxiosInstance } from "../utils/axios-parseable-instance";
 import ParseableTransport from "../logger/parseable-transport";
@@ -11,12 +10,11 @@ import ParseableTransport from "../logger/parseable-transport";
 import packageJson from "../../package.json";
 
 export const Hero = () => {
-  const { showBoundary } = useErrorBoundary();
   const [ipAddress, setIpAddress] = useState(null);
   const location = useLocation();
 
   const throwError = () => {
-    showBoundary("Something went wrong!");
+    throw new Error("Something went wrong!");
   };
 
   useEffect(() => {

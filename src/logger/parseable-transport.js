@@ -20,6 +20,7 @@ export default class ParseableTransport {
       method: "post",
       url: `/api/v1/logstream/${streamName}`,
       headers: {
+        "X-P-META-Tag": "hxl-rec",
         Authorization: basicAuth,
         "Content-Type": "application/json",
       },

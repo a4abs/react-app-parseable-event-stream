@@ -3,7 +3,7 @@
  * description: Customize axios instance to send logs to parseable
  */
 import axios from "axios";
-const parseableURL = "https://demo.parseable.com";
+const parseableURL = "https://parseable.technocube.in";
 
 export const parseableAxiosInstance = axios.create({
   baseURL: parseableURL,

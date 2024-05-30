@@ -1,70 +1,214 @@
-# Getting Started with Create React App
+# Getting Started
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app) and we are using Tailwind CSS.
 
 ## Available Scripts
 
 In the project directory, you can run:
 
-### `npm start`
+```
+# Runs the app in the development mode Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+npm start
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+# To build production app
+npm run build
 
-### `npm test`
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Parseable backend
 
-### `npm run build`
+You can set up your own self-hosted Parseable instance to store logs, or you can use demo.parseable.com for development purposes only. We recommend setting up your own Parseable instance to manage CORS/pre-flight checks and custom headers according to your specific requirements.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+We need following details of parseable instance
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+URL: https://demo.parseable.com
+username: admin
+password: admin
+streamname: 'ANY_STREAM_YOU_HAVE_CREATED'
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
 
-### `npm run eject`
+### Setup to avoid CORS issue (nginx configuration)
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+below code help you to avoid CORS error
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```
+location / {
+     proxy_pass http://YOUR_PARSEABLE_INSTANCE_IP:PORT;
+    # proxy_set_header Host $host;
+     proxy_set_header Host $host;
+     proxy_set_header X-Real-IP $remote_addr;
+     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+     proxy_set_header X-Forwarded-Proto $scheme;
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+    if ($request_method = 'OPTIONS') {
+            add_header 'Access-Control-Allow-Origin' '*';
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization';
+            add_header 'Access-Control-Max-Age' 1728000;
+            add_header 'Content-Type' 'text/plain; charset=utf-8';
+            add_header 'Content-Length' 0;
+            return 204;
+     }
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+     add_header 'Access-Control-Allow-Origin' '*';
+     add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, DELETE, PUT';
+     add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range, Authorization';
 
-## Learn More
+   }
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Set up your React app to send errors, events, and logs to Parseable.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. To capture errors, you can utilize React ErrorBoundary or any other React error boundary handler. Below is the code snippet we're employing. We currently use Sentry, but React ErrorBoundary will also serve the purpose effectively.
 
-### Code Splitting
+```
+<ErrorBoundary>
+    <App />
+ <ErrorBoundary>
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+2. We have created axios instance to send logs/events to parseable (axios-parseable-instance.js and parseable-transport.js)
 
-### Analyzing the Bundle Size
+```
+import axios from "axios";
+const parseableURL = "https://demo.parseable.com";
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+export const parseableAxiosInstance = axios.create({
+  baseURL: parseableURL,
+});
 
-### Making a Progressive Web App
+parseableAxiosInstance.interceptors.request.use(
+  (config) => {
+    // Alternatively, add to request body
+    if (config.method === "post" || config.method === "put") {
+      let user = localStorage.getItem("profile");
+      if (user) {
+        user = JSON.parse(user);
+        config.data = {
+          ...config.data,
+          host: parseableAxiosInstance.defaults.ipAddress || null,
+        };
+      }
+    }
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    return config;
+  },
+  (error) => {
+    Promise.reject(error);
+  }
+);
+```
 
-### Advanced Configuration
+```
+/**
+ * Name:ParseableTransport
+ * description: Parseable Transport to send events, logs, and errors to parseable backend
+ */
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+import { parseableAxiosInstance } from "../utils/axios-parseable-instance";
+import { Buffer } from "buffer";
 
-### Deployment
+const username = "admin"; // parseable username
+const password = "admin"; // parseable password
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+const basicAuth =
+  "Basic " + Buffer.from(`${username}:${password}`).toString("base64");
 
-### `npm run build` fails to minify
+export default class ParseableTransport {
+  // Send logs
+  static log(info) {
+    const streamName = "eventstream"; // parseable event stream
+    const config = {
+      method: "post",
+      url: `/api/v1/logstream/${streamName}`,
+      headers: {
+        Authorization: basicAuth,
+        "Content-Type": "application/json",
+      },
+      data: {
+        level: info.level || "error",
+        timestamp: new Date(),
+        message: info.message,
+        stack: info,
+      },
+    };
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    parseableAxiosInstance(config)
+      .then(function (response) {
+        console.log(
+          `Parseable logs sent with status with code ${response.status}`
+        );
+      })
+      .catch(function (error) {
+        console.log("axios error", error);
+      });
+  }
+
+  // Send Events
+  static event(info) {
+    const streamName = "eventstream"; // parseable event stream
+    console.log("basicAuth", basicAuth);
+    const config = {
+      method: "post",
+      url: `/api/v1/logstream/${streamName}`,
+      headers: {
+        Authorization: basicAuth,
+        "Content-Type": "application/json",
+      },
+      data: {
+        timestamp: new Date(),
+        ...info,
+      },
+    };
+
+    parseableAxiosInstance(config)
+      .then(function (response) {
+        console.log(
+          `Parseable logs sent with status with code ${response.status}`
+        );
+      })
+      .catch(function (error) {
+        console.log("axios error", error);
+      });
+  }
+}
+
+```
+
+3. We can use parseable Transport to send logs/errors
+
+```
+type log: Error;
+ParseableTransport.log(log);
+
+type event: Record<string:string>
+ParseableTransport.event(event);
+
+```
+
+4. To get component name to your event you need to add a data component name like below, it help you to get component information
+
+```
+<div data-component-name="DashboardCard"></div>
+```
+
+5. To identify IP address we need to create a service to fetch IP
+
+```
+export const fetchIpAddress = async () => {
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+    const data = await response.json();
+    return data.ip;
+  } catch (error) {
+    console.error("Error fetching IP address:", error);
+    return null;
+  }
+};
+
+```
+
+For more implementation you can check demo app

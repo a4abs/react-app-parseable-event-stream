@@ -13,7 +13,7 @@ parseableAxiosInstance.interceptors.request.use(
   (config) => {
     // Alternatively, add to request body
     if (config.method === "post" || config.method === "put") {
-      let user: any = localStorage.getItem("profile");
+      let user = localStorage.getItem("profile");
       if (user) {
         user = JSON.parse(user);
         config.data = {

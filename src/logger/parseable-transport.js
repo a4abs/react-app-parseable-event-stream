@@ -4,6 +4,7 @@
  */
 
 import { parseableAxiosInstance } from "../utils/axios-parseable-instance";
+import { Buffer } from "buffer";
 
 const username = "admin"; // parseable username
 const password = "admin"; // parseable password
@@ -13,7 +14,7 @@ const basicAuth =
 
 export default class ParseableTransport {
   // Send logs
-  static log(info: any) {
+  static log(info) {
     const streamName = "eventstream"; // parseable event stream
     const config = {
       method: "post",
@@ -42,8 +43,9 @@ export default class ParseableTransport {
   }
 
   // Send Events
-  static event(info: any) {
+  static event(info) {
     const streamName = "eventstream"; // parseable event stream
+    console.log("basicAuth", basicAuth);
     const config = {
       method: "post",
       url: `/api/v1/logstream/${streamName}`,

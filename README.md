@@ -89,7 +89,6 @@ parseableAxiosInstance.interceptors.request.use(
         user = JSON.parse(user);
         config.data = {
           ...config.data,
-          host: parseableAxiosInstance.defaults.ipAddress || null,
         };
       }
     }

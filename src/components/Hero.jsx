@@ -1,26 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 import { Container } from "../components/Container";
 import heroImg from "../images/hero.png";
-import { fetchIpAddress } from "../service/ipService";
-import { parseableAxiosInstance } from "../utils/axios-parseable-instance";
 import ParseableTransport from "../logger/parseable-transport";
 
 import packageJson from "../../package.json";
 
 export const Hero = () => {
-  const [ipAddress, setIpAddress] = useState(null);
   const location = useLocation();
 
   useEffect(() => {
-    // Fetching updates
-    const getIpAddress = async () => {
-      const ip = await fetchIpAddress();
-      setIpAddress(ip);
-    };
-    getIpAddress();
-
     // Track Click event
     const trackClick = (event) => {
       let target = event.target;
@@ -44,6 +34,7 @@ export const Hero = () => {
         pathname: location.pathname, // use react-router-dom
         level: "info",
         appId: "",
+        IP: "", // You can add IP address of client (optional)
         message: `User Clicked on ${componentName} component`,
       });
     };
@@ -55,12 +46,6 @@ export const Hero = () => {
       document.removeEventListener("click", trackClick);
     };
   }, []);
-
-  useEffect(() => {
-    if (ipAddress) {
-      parseableAxiosInstance.defaults.ipAddress = ipAddress;
-    }
-  }, [ipAddress]);
 
   return (
     <>
@@ -87,10 +72,10 @@ export const Hero = () => {
               <a
                 href="https://github.com/a4abs/react-app-parseable-event-stream"
                 target="_blank"
+                rel="noreferrer"
                 className="flex items-center space-x-2 text-gray-500 dark:text-gray-400"
               >
                 <svg
-                  role="img"
                   width="24"
                   height="24"
                   className="w-5 h-5"

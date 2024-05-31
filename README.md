@@ -62,7 +62,7 @@ location / {
 
 ## Set up your React app to send errors, events, and logs to Parseable.
 
-1. To capture errors, you can utilize React ErrorBoundary or any other React error boundary handler. Below is the code snippet we're employing. We currently use Sentry, but React ErrorBoundary will also serve the purpose effectively.
+1. To capture errors, you can utilize React ErrorBoundary or any other React error boundary handler. Below is the code snippet we're employing. We currently use Sentry, but React ErrorBoundary will also serve the purpose effectively.(optional)
 
 ```
 <ErrorBoundary>

@@ -3,18 +3,15 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+// HashRouter is using to handle page view
 import { HashRouter } from "react-router-dom";
-
-import ErrorBoundary from "./components/ErrorBoundary";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
 root.render(
   <React.StrictMode>
     <HashRouter>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
+      <App />
     </HashRouter>
   </React.StrictMode>
 );
